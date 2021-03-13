@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        canvas{
+            background-color: whitesmoke;
+        }
+    </style>
+</head>
+<body>
+    <canvas></canvas>
+    <script>
+        var canvas = document.querySelector('canvas'); //fetching canvas element
+        
+        canvas.width = window.innerWidth -4; //setting canvas width to window with
+        canvas.height = window.innerHeight -5; //setting canvas height to window height
+
+        let ctx = canvas.getContext('2d'); //context variable
+        //ctx is object that contain methods that can be used to draw on canvas
+
+        class circle{
+
+            constructor(x,y,dx,dy,radius){
+                this.x = x;
+                this.y = y;
+                this.dx = dx;
+                this.dy = dy;
+                this.radius = radius;
+                this.color="rgba("+Math.random()*255+","+Math.random()*255+","+Math.random()*255+")";
+                this.lw=Math.random()*10
+            }
+
+            draw = function(){
+                ctx.beginPath();
+                ctx.lineWidth=this.lw;
+                ctx.strokeStyle=this.color;
+                ctx.arc(this.x,this.y,this.radius,0,2*Math.PI);
+                ctx.shadowBlur=20;
+                ctx.shadowColor="black"
+                ctx.stroke();
+            }
+
+            update = function(){
+                if(this.x > innerWidth -this.radius || this.x < this.radius){
+                    // if(this.dx < 0){
+                    //     this.dx-=2
+                    // }
+                    // else{
+                    //     this.dx+=2;
+                    // }
+                    this.dx = -this.dx;
+
+                }
+
+                if(this.y > innerHeight -this.radius || this.y < this.radius){
+                    // if(this.dy < 0){
+                    //     this.dy-=2
+                    // }
+                    // else{
+                    //     this.dy+=2;
+                    // }
+                    this.dy = -this.dy;
+
+                }
+
+
+
+                this.x+=this.dx;
+                this.y+=this.dy;
+
+                this.draw();
+            }
+        }
+
+        var circleArray = [];
+        
+        for(let i=0; i<70 ;i++){
+            let radius = 120*Math.random();
+            let x=Math.random()* (innerWidth - radius*2)+radius;
+            let y=Math.random()*(innerHeight -radius*2)+radius;
+            let dx= Math.random()*2+2;
+            let dy= Math.random()*2+2;
+            let radus = 120*Math.random();
+            circleArray[i] = new circle(x,y,dx,dy,radius);
+        }
+
+        function animate(){
+            requestAnimationFrame(animate); //this function take another function 
+            //this will become recursion
+
+            ctx.clearRect(0,0,innerWidth, innerHeight)//this method is used to clear 
+            //the canvas and it take four argument x,y starting coordiante
+            //and another x,y ending coordinate
+
+            for(let i=0; i<circleArray.length; i++){
+                circleArray[i].update();
+            }
+
+        }
+
+        animate();
+    </script>
+</body>
+</html>
