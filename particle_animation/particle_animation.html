@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        canvas{
+            background:linear-gradient(to right, #136a8a,#267871);
+        }
+    </style>
+</head>
+<body>
+    <canvas></canvas>
+    <script>
+        var canvas = document.querySelector('canvas');
+        canvas.width = innerWidth-5;
+        canvas.height = innerHeight-5;
+
+        let ctx = canvas.getContext('2d');
+
+        // ctx.strokeStyle="white";
+        // ctx.fillStyle="white";
+        // ctx.fillRect(0,0,200,200)
+
+        class Dot{
+            //this is a class to make dots
+            constructor(x,y,dx,dy,radius){
+                this.x = x;//x coordinate of dot
+                this.y = y;//y coordinate of dot
+                this.dx = dx;//by how much dot move on each frame
+                this.dy = dy;
+                this.radius = radius;//radius of dot
+
+            }
+            
+            display = function(){
+                //this function is to display dot on canvas
+                ctx.beginPath();
+                ctx.strokeStyle="white";
+                ctx.arc(this.x,this.y,this.radius,0,2*Math.PI)//arc method is used to draw a circle 
+                ctx.fillStyle="white";//which color will be filled in circle
+                ctx.fill()
+                ctx.stroke()//stroke method is used to make anything on screen
+            }
+
+            update = function(){
+                //this method is used move dot on each frame
+
+                if(this.x > innerWidth -this.radius|| this.x < this.radius){
+                    this.dx = -this.dx; // if dot touches x boundary reverse the direction of 
+                    //dot movement
+
+                }
+
+                if(this.y > innerHeight -this.radius || this.y < this.radius){
+                    this.dy = -this.dy;
+                    //if dot touches y boundary reverse the direction of 
+                    //of dot movement
+                }
+
+                this.x+=this.dx;//incrementing x coordinate of dot for each frame
+                this.y+=this.dy;//incrementing y coordinate of dot for each frame
+
+                this.display();//and calling display function to display dot on updated coordinate
+            }
+        }
+
+        var Dots=[];
+        let n =50;
+        for(let i=0; i<n; i++){
+
+            //here creating n number of dot
+
+            let x = Math.random()*(innerWidth-2*2)+2; //x coordinate of should be in range of window width
+            //and radius distance away from boundary
+            let y = Math.random()*(innerHeight - 2*2)+2;
+            //similar for y
+
+            let dx = Math.random()*5;//generating radom dx and dy for dot movement
+            let dy = Math.random()*5;
+
+            let radius = Math.random()*4+1//generating random radius for dot
+
+            Dots[i] = new Dot(x,y,dx,dy,radius)//creating a dot and storing it in an array
+        }
+
+
+        function connect(Dots){
+
+            //this connect function will connet dots with lines
+
+            for(let i=0; i<Dots.length;i++){
+                //here connecting ith dot to n-i dots
+
+                for(let j=i+1; j<Dots.length;j++){
+
+                    ctx.beginPath();
+                    ctx.moveTo(Dots[i].x,Dots[i].y);
+                    
+                    let distance = Math.sqrt((Dots[i].x - Dots[j].x)**2 + (Dots[i].y - Dots[j].y)**2)
+                    //here calculating distance between ith dot and jth dot
+
+                    let opacity = 1 - distance/200;
+                    //here maintaining opacity of line , if dots are away then opacity of line will be less
+                    //and vice-verse
+
+                    ctx.strokeStyle="rgba(255,255,255,"+opacity+")";//choosing storke style of dot and 
+                    //and maintaining opacity
+
+                    ctx.lineWidth=3;
+                    if(distance <= 200){
+                        //is distance between dots are lesss than 150 
+                        //then connect dots
+                        ctx.lineTo(Dots[j].x,Dots[j].y)
+                    }
+
+                    ctx.stroke()
+
+                }
+            }
+        }
+
+        connect(Dots)
+
+        function animate(){
+            requestAnimationFrame(animate); //this function take another function 
+            //this will become recursion
+
+            ctx.clearRect(0,0,innerWidth, innerHeight)//this method is used to clear 
+            //the canvas and it take four argument x,y starting coordiante
+            //and another x,y ending coordinate
+
+            for(let i=0; i<Dots.length; i++){
+                //this loop will update coordinate of each dot on canvas
+                Dots[i].update();
+            }
+
+            connect(Dots)
+            //this function will connect all dots
+        }
+
+        animate()//calling animate function
+
+        window.addEventListener('resize',function(){
+            //adding an eventlistner if window is resized
+
+            canvas.width = window.innerWidth;-5 //setting canvas width to window with
+            canvas.height = window.innerHeight-5;
+
+
+            for(let i=0; i<Dots.length; i++){
+                //this loop will if any dot is outside boundary of canvas
+                //then move that inside boundary of canvas
+
+                let radius = Dots[i].radius;
+                let x= Dots[i].x;
+                let y= Dots[i].y;
+
+                if(x > (canvas.width - radius)){
+                    Dots[i].x = canvas.width-radius;
+                }
+                if(x < radius){
+                    Dots[i].x=  radius;
+                }
+
+                if(y > (canvas.height - radius)){
+                    Dots[i].y = canvas.height-radius;
+                }
+                if(y < radius){
+                    Dots[i].y=  radius;
+                }
+
+            }
+
+        })
+    </script>
+</body>
+</html>
