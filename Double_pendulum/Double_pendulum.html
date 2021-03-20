@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Double Pendulum</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        canvas{
+            background-color: lightgreen;
+            z-index: -5;
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <canvas></canvas>
+    <h2>You can adjust values here</h2>
+    <label>Mass M1</label>
+    <input type="range" min="10" max="40" id="mass1"><br>
+    <label>Mass M2</label>
+    <input type="range" min="10" max="40" id="mass2"><br>
+    <labe>Rod 1</labe>
+    <input type="range" min="50" max="200" id="rod1"><br>
+    <labe>Rod 2</labe>
+    <input type="range" min="50" max="200" id="rod2"><br>
+    <label>Value of g</label>
+    <input type="range" min="1"  max="10" id="gravity"><br>
+    <labe>Angel 1</labe>
+    <input type="range" min="0" max="10" id="a1" onchange="change_angle()"><br>
+    <label>Angle 2</label>
+    <input type="range" min="0"  max="10" id="a2" onchange="change_angle()"><br>
+    
+
+    <script>
+    
+        let canvas = document.querySelector('canvas');
+        canvas.height = innerHeight-5;
+        canvas.width = innerWidth-5;
+        let ctx = canvas.getContext('2d');
+        const pi = Math.PI;
+
+        let r1= 200;
+        let r2= 200;
+        let m1 = 20;
+        let m2 = 20; 
+        let a1 = pi/6;
+        let a2 = pi/6;
+        let ox = canvas.width/2;
+        let oy = canvas.height/2.3;
+        var x1=0;
+        var x2 =0;
+        var y1 =0;
+        var y2 = 0;
+        let time = 0.2;
+        let mu = 1+(m1+m2);
+
+        let a1_v = 0;
+        let a2_v = 0;
+        let a1_a = 0;
+        let a2_a = 0;
+
+        flag = false;
+
+        let g = 9.8;
+
+        let tracepath_m1=[];
+        let tracepath_m2=[];
+
+        function change_angle(){
+            //changing initial angle 
+            window.cancelAnimationFrame(animate)
+            a1 = document.querySelector('#a1').value*2*pi/10;
+            a2 = document.querySelector('#a2').value*2*pi/10;
+        }
+        function initial_condition(){
+            //this function is used to fetch initila condition for system
+            m1 = document.querySelector('#mass1').value;
+            m2 = document.querySelector('#mass2').value;
+            r1 = document.querySelector('#rod1').value;
+            r2 = document.querySelector('#rod2').value;
+            g = document.querySelector('#gravity').value;
+        }
+
+        function cal_w(){
+            //calculaing angular accerlatoim
+            a1_a = (g*(Math.sin(a2)*Math.cos(a1-a2)-mu*Math.sin(a1))-(r2*a2_v*a2_v+r1*a1_v*a1_v*Math.cos(a1-a2))*Math.sin(a1-a2))/(r1*(mu-Math.cos(a1-a2)*Math.cos(a1-a2)));
+            a2_a = (mu*g*(Math.sin(a1)*Math.cos(a1-a2)-Math.sin(a2))+(mu*r1*a1_v*a1_v+r2*a2_v*a2_v*Math.cos(a1-a2))*Math.sin(a1-a2))/(r2*(mu-Math.cos(a1-a2)*Math.cos(a1-a2)));
+
+        }
+
+        function calculatePosition(){
+            //generating random angle
+            cal_w();
+            // console.log(a1_a,a2_a)
+            a1_v+=a1_a*time;
+            a2_v+=a2_a*time;
+            a1 +=a1_v*time;
+            a2 +=a2_v*time;
+
+            console.log(a1,a2)
+
+            // console.log(sin(a1),cos(a2));
+
+            //calculating coordinates for first pendulum
+            x1 = r1*Math.sin(a1);
+            y1 = r1*Math.cos(a1);
+
+            //calculaing coordinated for second pendulum
+            x2 = x1+r2*Math.sin(a2);
+            y2 = y1+r2*Math.cos(a2);
+
+
+            //this is to collect last 100 and 200 coordinate of bob to trace path
+            if(tracepath_m1.length > 100){
+                tracepath_m1.pop();
+                tracepath_m1.splice(0,0,[x1,y1]);
+            }
+            else{
+                tracepath_m1.push([x1,y1])
+            }
+
+            if(tracepath_m2.length > 200){
+                tracepath_m2.pop();
+                tracepath_m2.splice(0,0,[x2,y2]);
+            }
+            else{
+                tracepath_m2.push([x2,y2])
+            }
+
+        }
+
+        function updatePosition(){
+            //this function is to update position of bob and rod
+
+            ctx.moveTo(ox,oy);
+            //ox and oy in origin 
+            //and ox and oy is changed to canvas.width/2 and canvas.height/2
+            
+
+            //here drawing rod
+            ctx.strokeStyle="black";
+            ctx.lineTo(ox+x1,oy+y1);
+            ctx.moveTo(ox+ x1,oy+ y1);
+            ctx.lineTo(ox+ x2,oy+ y2);
+            ctx.stroke();
+            ctx.closePath();
+
+
+            //here drawing hinge and two bob
+            ctx.beginPath();
+            ctx.arc(ox,oy,5,0,2*pi);
+            ctx.fillStyle="black";
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(ox+ x1,oy+y1,m1,0,2*pi);
+            ctx.fillStyle="red";
+            ctx.fill();
+
+
+
+            ctx.beginPath();
+            ctx.arc(ox+ x2,oy+y2,m2,0,2*pi);
+            ctx.fillStyle="blue";
+            ctx.fill();
+
+
+            
+        }
+
+        function drawTracePath_m1(){
+            //this function is to draw tracepath of m1
+
+            // move to the first point
+
+            ctx.moveTo(tracepath_m1[0][0]+ox, tracepath_m1[0][1]+oy);
+            ctx.beginPath();
+            ctx.strokeStyle="blue";
+            ctx.lineWidth=4;
+
+            for(let i=1; i<tracepath_m1.length; i++){
+                
+                ctx.lineTo(tracepath_m1[i][0]+ox,tracepath_m1[i][1]+oy);
+                ctx.moveTo(tracepath_m1[i][0]+ox,tracepath_m1[i][1]+oy);
+            }
+
+            ctx.stroke();
+            ctx.closePath();
+        }
+
+        function drawTracePath_m2(){
+            //this is to tracepath of m2
+
+            // move to the first point
+
+            ctx.moveTo(tracepath_m2[0][0]+ox, tracepath_m2[0][1]+oy);
+            ctx.beginPath();
+            lineWidth=5;
+
+            for(let i=1; i<tracepath_m2.length; i++){
+                
+                ctx.lineTo(tracepath_m2[i][0]+ox,tracepath_m2[i][1]+oy);
+                ctx.moveTo(tracepath_m2[i][0]+ox,tracepath_m2[i][1]+oy);
+            }
+
+            ctx.stroke();
+        }
+
+
+        // calculatePosition();
+        // updatePosition();
+
+        function animate(){
+            //this is requesting frame
+            
+            requestAnimationFrame(animate);
+
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+
+            initial_condition();//checking initial condition
+            calculatePosition();//calculating positon of bobs
+            drawTracePath_m1();//tracing path of m1
+            drawTracePath_m2();//tracing path of m2
+            updatePosition();//updating position
+        }
+
+        animate();
+
+
+    </script>
+</body>
+</html>
